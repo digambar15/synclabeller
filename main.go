@@ -69,14 +69,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	//if err = (&controllers.Metal3LabelSyncReconciler{
-	//	Client: mgr.GetClient(),
-	//	Log:    ctrl.Log.WithName("controllers").WithName("Metal3LabelSync"),
-	//	Scheme: mgr.GetScheme(),
-	//}).SetupWithManager(mgr); err != nil {
-	//	setupLog.Error(err, "unable to create controller", "controller", "Metal3LabelSync")
-	//	os.Exit(1)
-	//}
 	if err := (&controllers.Metal3LabelSyncReconciler{
 		Client:           mgr.GetClient(),
 		ManagerFactory:   baremetal.NewManagerFactory(mgr.GetClient()),
