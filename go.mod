@@ -16,6 +16,7 @@ require (
 	k8s.io/api v0.19.0
 	k8s.io/apimachinery v0.19.0
 	k8s.io/client-go v12.0.0+incompatible
+	k8s.io/klog v1.0.0
 	k8s.io/utils v0.0.0-20200821003339-5e75c0163111
 	sigs.k8s.io/cluster-api v0.3.9
 	sigs.k8s.io/controller-runtime v0.6.2
@@ -24,3 +25,4 @@ require (
 replace k8s.io/client-go => k8s.io/client-go v0.19.0
 
 replace github.com/go-logr/zapr => github.com/go-logr/zapr v0.2.0
+
