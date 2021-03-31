@@ -20,7 +20,7 @@ spec:
         - /manager
         args:
         - --enable-leader-election
-        image: digambarpat/synclabeller:second
+        image: digambarpat/synclabeller:latest
         name: manager
         resources:
           limits:
