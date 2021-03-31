@@ -68,3 +68,23 @@ rules:
   - get
   - patch
   - update
+- apiGroups:
+  - infrastructure.cluster.x-k8s.io
+  resources:
+  - metal3clusters
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - infrastructure.cluster.x-k8s.io
+  resources:
+  - metal3clusters/status
+  verbs:
+  - get
+  - patch
+  - update
