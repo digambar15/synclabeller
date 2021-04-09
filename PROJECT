@@ -1,0 +1,7 @@
+domain: airshipit.org
+repo: synclabeller
+resources:
+- group: airship
+  kind: Metal3LabelSync
+  version: v1
+version: "2"
