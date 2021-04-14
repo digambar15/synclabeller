@@ -20,7 +20,7 @@ spec:
         - /manager
         args:
         - --enable-leader-election
-        image: digambarpat/synclabeller:latest
+        image: quay.io/airshipit/synclabeller:latest
         name: manager
         resources:
           limits:
