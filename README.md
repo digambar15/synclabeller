@@ -1,2 +1,2 @@
 # synclabeller
-Sync labels between vBMH, M3MRef and node objects for ViNO
+Sync labels between BMH and node objects for ViNO
