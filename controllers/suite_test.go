@@ -1,12 +1,9 @@
 /*
-
-
+Copyright 2021 The Kubernetes Authors.
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
-
     http://www.apache.org/licenses/LICENSE-2.0
-
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -34,7 +31,9 @@ import (
 
 	bmh "github.com/metal3-io/baremetal-operator/apis/metal3.io/v1alpha1"
 	infrav1 "github.com/metal3-io/cluster-api-provider-metal3/api/v1alpha4"
+	ipamv1 "github.com/metal3-io/ip-address-manager/api/v1alpha1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	capi "sigs.k8s.io/cluster-api/api/v1alpha3"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha3"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
@@ -68,6 +67,7 @@ func init() {
 	_ = apiextensionsv1.AddToScheme(scheme.Scheme)
 	_ = clusterv1.AddToScheme(scheme.Scheme)
 	_ = infrav1.AddToScheme(scheme.Scheme)
+	_ = ipamv1.AddToScheme(scheme.Scheme)
 	_ = corev1.AddToScheme(scheme.Scheme)
 	_ = bmh.SchemeBuilder.AddToScheme(scheme.Scheme)
 }
@@ -78,6 +78,9 @@ func setupScheme() *runtime.Scheme {
 		panic(err)
 	}
 	if err := infrav1.AddToScheme(s); err != nil {
+		panic(err)
+	}
+	if err := ipamv1.AddToScheme(s); err != nil {
 		panic(err)
 	}
 	if err := corev1.AddToScheme(s); err != nil {
@@ -141,6 +144,17 @@ func clusterPauseSpec() *clusterv1.ClusterSpec {
 			Namespace:  namespaceName,
 			Kind:       "Metal3Cluster",
 			APIVersion: infrav1.GroupVersion.String(),
+		},
+	}
+}
+
+func m3mObjectMetaWithOwnerRef() *metav1.ObjectMeta {
+	return &metav1.ObjectMeta{
+		Name:            metal3machineName,
+		Namespace:       namespaceName,
+		OwnerReferences: m3mOwnerRefs(),
+		Labels: map[string]string{
+			capi.ClusterLabelName: clusterName,
 		},
 	}
 }
@@ -356,4 +370,14 @@ func newBareMetalHost(spec *bmh.BareMetalHostSpec,
 		Status: *status,
 	}
 
+}
+
+func m3mOwnerRefs() []metav1.OwnerReference {
+	return []metav1.OwnerReference{
+		{
+			APIVersion: clusterv1.GroupVersion.String(),
+			Kind:       "Machine",
+			Name:       machineName,
+		},
+	}
 }

@@ -18,6 +18,7 @@ import (
 
 	bmh "github.com/metal3-io/baremetal-operator/apis/metal3.io/v1alpha1"
 	infrav1 "github.com/metal3-io/cluster-api-provider-metal3/api/v1alpha4"
+	"github.com/metal3-io/cluster-api-provider-metal3/baremetal"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
@@ -47,7 +48,7 @@ var _ = Describe("Metal3LabelSync controller", func() {
 		},
 		Entry("Single label case", TestCaseBuildLabelSyncSet{
 			PrefixSet: map[string]struct{}{
-				"foo.metal3.io": struct{}{},
+				"foo.metal3.io": {},
 			},
 			Labels: map[string]string{
 				"foo.metal3.io/bar": "blue",
@@ -58,8 +59,8 @@ var _ = Describe("Metal3LabelSync controller", func() {
 		}),
 		Entry("Multiple label case", TestCaseBuildLabelSyncSet{
 			PrefixSet: map[string]struct{}{
-				"foo.metal3.io": struct{}{},
-				"boo.metal3.io": struct{}{},
+				"foo.metal3.io": {},
+				"boo.metal3.io": {},
 			},
 			Labels: map[string]string{
 				"foo.metal3.io/bar":  "blue",
@@ -74,7 +75,7 @@ var _ = Describe("Metal3LabelSync controller", func() {
 		}),
 		Entry("Ignore labels not in prefix set", TestCaseBuildLabelSyncSet{
 			PrefixSet: map[string]struct{}{
-				"foo.metal3.io": struct{}{},
+				"foo.metal3.io": {},
 			},
 			Labels: map[string]string{
 				"boo.metal3.io/blah":     "red",
@@ -101,7 +102,7 @@ var _ = Describe("Metal3LabelSync controller", func() {
 		}),
 		Entry("Empty labels", TestCaseBuildLabelSyncSet{
 			PrefixSet: map[string]struct{}{
-				"foo.metal3.io": struct{}{},
+				"foo.metal3.io": {},
 			},
 			Labels:         map[string]string{},
 			ExpectedResult: map[string]string{},
@@ -128,16 +129,16 @@ var _ = Describe("Metal3LabelSync controller", func() {
 			PrefixStr:   "foo.metal3.io",
 			ExpectedErr: false,
 			ExpectedResult: map[string]struct{}{
-				"foo.metal3.io": struct{}{},
+				"foo.metal3.io": {},
 			},
 		}),
 		Entry("Parse multiple prefixes", TestCaseParsePrefixAnnotation{
 			PrefixStr:   "foo.metal3.io, moo.myprefix,,bar",
 			ExpectedErr: false,
 			ExpectedResult: map[string]struct{}{
-				"foo.metal3.io": struct{}{},
-				"moo.myprefix":  struct{}{},
-				"bar":           struct{}{},
+				"foo.metal3.io": {},
+				"moo.myprefix":  {},
+				"bar":           {},
 			},
 		}),
 		Entry("Parse empty prefix string", TestCaseParsePrefixAnnotation{
@@ -173,7 +174,7 @@ var _ = Describe("Metal3LabelSync controller", func() {
 		},
 		Entry("Label exists, do nothing", TestCaseSynchronizeLabelSyncSetsOnNode{
 			PrefixSet: map[string]struct{}{
-				"foo.metal3.io": struct{}{},
+				"foo.metal3.io": {},
 			},
 			Host: &bmh.BareMetalHost{
 				ObjectMeta: metav1.ObjectMeta{
@@ -195,7 +196,7 @@ var _ = Describe("Metal3LabelSync controller", func() {
 		}),
 		Entry("Add label on Node", TestCaseSynchronizeLabelSyncSetsOnNode{
 			PrefixSet: map[string]struct{}{
-				"foo.metal3.io": struct{}{},
+				"foo.metal3.io": {},
 			},
 			Host: &bmh.BareMetalHost{
 				ObjectMeta: metav1.ObjectMeta{
@@ -215,8 +216,8 @@ var _ = Describe("Metal3LabelSync controller", func() {
 		}),
 		Entry("Add multiple labels on Node, ignore existing label", TestCaseSynchronizeLabelSyncSetsOnNode{
 			PrefixSet: map[string]struct{}{
-				"foo.metal3.io": struct{}{},
-				"boo.metal3.io": struct{}{},
+				"foo.metal3.io": {},
+				"boo.metal3.io": {},
 			},
 			Host: &bmh.BareMetalHost{
 				ObjectMeta: metav1.ObjectMeta{
@@ -241,8 +242,8 @@ var _ = Describe("Metal3LabelSync controller", func() {
 		}),
 		Entry("Remove and update labels from Node", TestCaseSynchronizeLabelSyncSetsOnNode{
 			PrefixSet: map[string]struct{}{
-				"foo.metal3.io": struct{}{},
-				"boo.metal3.io": struct{}{},
+				"foo.metal3.io": {},
+				"boo.metal3.io": {},
 			},
 			Host: &bmh.BareMetalHost{
 				ObjectMeta: metav1.ObjectMeta{
@@ -316,6 +317,7 @@ var _ = Describe("Metal3LabelSync controller", func() {
 				Cluster:   newCluster(clusterName, nil, nil),
 				M3Cluster: newMetal3Cluster(metal3ClusterName, bmcOwnerRef(), bmcSpec(), nil, false),
 				Machine:   newMachine(clusterName, machineName, metal3machineName),
+				M3Machine: newMetal3Machine(metal3machineName, m3mObjectMeta(), nil, nil, false),
 				ExpectRequests: []ctrl.Request{
 					{
 						NamespacedName: types.NamespacedName{
@@ -328,3 +330,17 @@ var _ = Describe("Metal3LabelSync controller", func() {
 		),
 	)
 })
+
+func m3mObjectMeta() *metav1.ObjectMeta {
+	return &metav1.ObjectMeta{
+		Name:            metal3machineName,
+		Namespace:       namespaceName,
+		OwnerReferences: m3mOwnerRefs(),
+		Labels: map[string]string{
+			capi.ClusterLabelName: clusterName,
+		},
+		Annotations: map[string]string{
+			baremetal.HostAnnotation: "myns/myhost",
+		},
+	}
+}
